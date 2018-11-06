@@ -500,6 +500,24 @@ module LifecycleHelpers
     end
   end
 
+  # Checks that VM and given disks are compliant with given policy
+  def check_compliance(cpi, policy_name, vm, disks=[])
+    policy = cpi.pbm.find_policy(policy_name)
+    compliance_manager = cpi.pbm.service_content.compliance_manager
+    entities = [VimSdk::Pbm::ServerObjectRef.new(key: vm.mob_id, object_type: 'virtualMachine')]
+    disks = [vm.ephemeral_disk, vm.system_disk]
+    entities += disks.map do |disk|
+      disk_id = "#{vm.mob_id}:#{disk.key}"
+      VimSdk::Pbm::ServerObjectRef.new(key: disk_id, object_type: 'virtualDiskId')
+    end
+    compliance_result = compliance_manager.check_compliance(entities)
+    expect(compliance_result.count).to eq(entities.count)
+    compliance_result.each do |result|
+      expect(result.compliance_status).to eq('compliant')
+      expect(result.profile.unique_id).to eq(policy.profile_id.unique_id)
+    end
+  end
+
   private
 
   def is_disk_in_datastores(cpi, disk_id, accessible_datastores)

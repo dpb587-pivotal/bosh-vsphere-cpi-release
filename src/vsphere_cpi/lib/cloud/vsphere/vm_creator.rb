@@ -161,6 +161,9 @@ module VSphereCloud
           # Add vm to VMGroup
           add_vm_to_vm_group(vm_config, created_vm.mob, cluster)
 
+          # Apply storage policy
+          apply_storage_policy(vm_config, created_vm)
+
           begin
             # Upgrade to latest virtual hardware version
             # We decide to upgrade hardware version on basis of two params
@@ -223,6 +226,12 @@ module VSphereCloud
         cluster.mob
       )
       vm_group.add_vm_to_vm_group(vm_mob, vm_config.vm_type.vm_group)
+    end
+
+    def apply_storage_policy(vm_config, vm)
+      return if vm_config.vm_type.storage_policy_name.nil?
+      policy = @pbm.find_policy(vm_config.vm_type.storage_policy_name)
+      vm.apply_storage_policy(policy)
     end
   end
 end
