@@ -156,7 +156,7 @@ module VSphereCloud
           logger.info("Generated name: #{name}")
 
           stemcell_size = File.size(image) / (1024 * 1024)
-          vm_type = VmType.new(@datacenter, {'ram' => 0})
+          vm_type = VmType.new(@datacenter, {'ram' => 0}, @pbm)
 
           # TODO: this code re-use is messy, extract the necessary functionality out of vm_config
           manifest_params = {
@@ -291,7 +291,7 @@ module VSphereCloud
           )
           stemcell_size /= 1024 * 1024
 
-          vm_type = VmType.new(@datacenter, vm_type)
+          vm_type = VmType.new(@datacenter, vm_type, @pbm)
 
           manifest_params = {
             vm_type: vm_type,
@@ -843,7 +843,7 @@ module VSphereCloud
         )
       end
       #ephemeral disk configuration
-      ephemeral_pattern = StoragePicker.choose_ephemeral_pattern(vm_type, @pbm)
+      ephemeral_pattern = StoragePicker.choose_ephemeral_pattern(vm_type)
       ephemeral_disk_config = VSphereCloud::DiskConfig.new(
         size: vm_type.disk,
         ephemeral: true,
